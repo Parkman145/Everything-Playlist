@@ -1,5 +1,13 @@
 {
     "client_id":"49c2202ae61a478f8b337ffc521843d9",
-    "redirect_uri":"https://127.0.0.1:3000/callback"
+    "redirect_uri":"https://127.0.0.1:3000/callback",
     
+    "exclude":{
+        "playlists":{
+
+        },
+        "songs":{
+
+        }
+    }
 }
