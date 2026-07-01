@@ -1,6 +1,6 @@
 import json
 import requests
-
+from time import sleep
 import auth
 
 token = auth.get_token()
@@ -40,3 +40,54 @@ playlist_create_response_body = json.loads(requests.request("POST", playlists_ur
 
 EVERYTHING_playlist_id = playlist_create_response_body["id"]
 
+print(EVERYTHING_playlist_id)
+
+seen_albums = set()
+seen_songs = set()
+song_uris = []
+
+
+
+response = requests.request("GET", playlists_url, headers=headers)
+playlists = json.loads(response.text)
+
+playlists_counter = 0
+
+for playlist in playlists["items"]:
+    if playlist["id"] in exclude_playlists or playlist["name"] in exclude_playlists:
+        continue
+    playlists_url = playlist["href"]
+    playlist_response = json.loads(requests.request("GET", playlists_url, headers=headers).content)
+    if exclude_other_users and (playlist_response["owner"]["uri"] != me_uri):
+        continue
+    
+    for song in playlist_response["items"]["items"]:
+        try:
+            song_id = song["item"]["id"]
+            album_id = song["item"]["album"]["id"]
+        except TypeError:
+            continue
+
+        if song_id not in seen_songs:
+            seen_songs.add(song_id)
+            song_uris.append(f"spotify:track:{song_id}")
+    playlists_counter += 1
+    print(f"\rPlaylists Checked: {playlists_counter}                     ", end="")
+
+while song_uris:
+    url = f"https://api.spotify.com/v1/playlists/{EVERYTHING_playlist_id}/items"
+
+    payload = {"uris": song_uris[:100]}
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Python",
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.request("POST", url, json=payload, headers=headers)
+
+    if response.status_code == 429:
+        sleep(1)
+        continue
+
+    song_uris = song_uris[100:]
