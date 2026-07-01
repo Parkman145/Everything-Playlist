@@ -7,6 +7,7 @@ import hashlib
 import secrets
 import base64
 
+
 def generate_code():
     code = secrets.token_urlsafe(64)
     hasher = hashlib.sha256()
@@ -18,13 +19,12 @@ def generate_code():
 
     return (code, code_challenge)
 
+
 def get_token():
     with open("config.json") as f:
         config = json.load(f)
 
-
     s = socket.create_server(('127.0.0.1', 3000))
-
 
     client_id = urllib.parse.quote(config["client_id"])
     redirect_uri = urllib.parse.quote(config["redirect_uri"])
@@ -59,7 +59,6 @@ def get_token():
 
     query = urllib.parse.urlsplit(path).query
     code = urllib.parse.parse_qs(query)["code"][0]
-
 
     spotify_token_url = "https://accounts.spotify.com/api/token"
 
