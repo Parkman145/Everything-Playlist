@@ -15,7 +15,7 @@ def generate_code():
     hasher.update(code.encode("utf-8"))
     code_hash = hasher.digest()
     code_challenge = base64.urlsafe_b64encode(code_hash).decode("utf-8").replace("=", "")
-    
+
     return (code, code_challenge)
 # Auth
 with open("config.json") as f:
@@ -29,13 +29,18 @@ client_id = urllib.parse.quote(config["client_id"])
 redirect_uri = urllib.parse.quote(config["redirect_uri"])
 scope = urllib.parse.quote("user-read-private user-read-email playlist-read-private")
 
+code_verifier, code_challenge = generate_code()
+
 auth_url = (
     "https://accounts.spotify.com/authorize?"
     f"client_id={client_id}"
     "&response_type=code"
     f"&redirect_uri={redirect_uri}"
     f"&scope={scope}"
+    "&code_challenge_method=S256"
+    f"&code_challenge={code_challenge}"
 )
+
 webbrowser.open_new_tab(auth_url)
 conn, addr  = s.accept()
 message = conn.recv(1024)
@@ -60,8 +65,10 @@ spotify_token_url = "https://accounts.spotify.com/api/token"
 
 payload = (
     "grant_type=authorization_code"
-    "&redirect_uri=https%3A%2F%2F127.0.0.1%3A3000%2Fcallback"""
-    f"&client_id=49c2202ae61a478f8b337ffc521843d9&code={code}"
+    f"&redirect_uri={redirect_uri}"
+    "&client_id=49c2202ae61a478f8b337ffc521843d9"
+    f"&code={code}"
+    f"&code_verifier={code_verifier}"
     )
 headers = {
     "Content-Type": "application/x-www-form-urlencoded",
@@ -70,4 +77,4 @@ headers = {
 
 response = requests.request("POST", spotify_token_url, data=payload, headers=headers)
 
-print(response.text)
+token = json.loads(response.text)["access_token"]
