@@ -11,7 +11,6 @@ import base64
 def generate_code():
     code = secrets.token_urlsafe(64)
     hasher = hashlib.sha256()
-    # hasher.update(code.encode("utf-8"))
     hasher.update(code.encode("utf-8"))
     code_hash = hasher.digest()
     code_challenge = base64.urlsafe_b64encode(
