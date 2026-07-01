@@ -46,33 +46,41 @@ seen_albums = set()
 seen_songs = set()
 song_uris = []
 
-
-
-response = requests.request("GET", playlists_url, headers=headers)
-playlists = json.loads(response.text)
+current_playlists_url = playlists_url
 
 playlists_counter = 0
+error_song_count = 0
 
-for playlist in playlists["items"]:
-    if playlist["id"] in exclude_playlists or playlist["name"] in exclude_playlists:
-        continue
-    playlists_url = playlist["href"]
-    playlist_response = json.loads(requests.request("GET", playlists_url, headers=headers).content)
-    if exclude_other_users and (playlist_response["owner"]["uri"] != me_uri):
-        continue
-    
-    for song in playlist_response["items"]["items"]:
-        try:
-            song_id = song["item"]["id"]
-            album_id = song["item"]["album"]["id"]
-        except TypeError:
+while True:
+    response = requests.request("GET", current_playlists_url, headers=headers)
+    playlists = json.loads(response.text)
+    total_songs = playlists["total"]
+
+    for playlist in playlists["items"]:
+        if playlist["id"] in exclude_playlists or playlist["name"] in exclude_playlists:
             continue
+        playlist_url = playlist["href"]
+        playlist_response = json.loads(requests.request("GET", playlist_url, headers=headers).content)
+        if exclude_other_users and (playlist_response["owner"]["uri"] != me_uri):
+            continue
+        
+        for song in playlist_response["items"]["items"]:
+            try:
+                song_id = song["item"]["id"]
+                album_id = song["item"]["album"]["id"]
+            except TypeError:
+                error_song_count += 1
+                continue
 
-        if song_id not in seen_songs:
-            seen_songs.add(song_id)
-            song_uris.append(f"spotify:track:{song_id}")
-    playlists_counter += 1
-    print(f"\rPlaylists Checked: {playlists_counter}                     ", end="")
+            if song_id not in seen_songs:
+                seen_songs.add(song_id)
+                song_uris.append(f"spotify:track:{song_id}")
+        playlists_counter += 1
+        print(f"\rPlaylists Checked: {playlists_counter}/{total_songs}, Error with {error_song_count} songs                     ", end="")
+
+    if playlists["next"]:
+        current_playlists_url = playlists["next"]
+    else: break
 
 while song_uris:
     url = f"https://api.spotify.com/v1/playlists/{EVERYTHING_playlist_id}/items"
