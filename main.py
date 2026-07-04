@@ -2,8 +2,14 @@ import json
 import requests
 from time import sleep
 import auth
+import requests_cache
+import math
 
 token = auth.get_token()
+
+
+requests_cache.install_cache('demo_cache')
+
 
 # Setup Config
 with open("config.json") as f:
