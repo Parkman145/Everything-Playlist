@@ -79,3 +79,6 @@ def get_token():
     token = json.loads(response.text)["access_token"]
 
     return token
+
+if __name__ == "__main__":
+    print(get_token())
