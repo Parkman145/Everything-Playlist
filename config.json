@@ -3,11 +3,12 @@
     "redirect_uri":"http://127.0.0.1:3000/callback",
     
     "exclude":{
-        "playlists":{
+        "exclude_other_users":true,
+        "playlists":[
 
-        },
-        "songs":{
+        ],
+        "songs":[
 
-        }
+        ]
     }
 }
