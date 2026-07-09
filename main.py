@@ -8,7 +8,7 @@ import math
 token = auth.get_token()
 
 
-requests_cache.install_cache('demo_cache')
+requests_cache.install_cache('demo_cache', expire_after=3600, ignored_parameters=[])
 
 
 # Setup Config
