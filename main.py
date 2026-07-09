@@ -42,7 +42,9 @@ headers = {
     "Authorization": f"Bearer {token}"
 }
 
-playlist_create_response_body = json.loads(requests.request("POST", playlists_url, json=payload, headers=headers).content)
+playlist_create_response = requests.request("POST", playlists_url, json=payload, headers=headers)
+playlist_create_response_body = json.loads(playlist_create_response.content)
+
 
 EVERYTHING_playlist_id = playlist_create_response_body["id"]
 
