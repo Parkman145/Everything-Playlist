@@ -73,6 +73,7 @@ with open("config.json") as f:
 exclude_other_users = config["exclude"]["exclude_other_users"]
 exclude_playlists = config["exclude"]["playlists"]
 exclude_songs = config["exclude"]["songs"]
+whitelist = config["exclude"]["whitelist"]
 
 headers = {
     "User-Agent": "Python",
@@ -88,56 +89,69 @@ seen_albums = set()
 seen_songs = set()
 song_uris = []
 
-current_playlists_url = playlists_url
 
 playlists_counter = 0
 error_song_count = 0
 
-while True:
-    response = requests.request("GET", current_playlists_url, headers=headers)
-    playlists = json.loads(response.text)
-    total_songs = playlists["total"]
 
-    for playlist in playlists["items"]:
-        if playlist["id"] in exclude_playlists or playlist["name"] in exclude_playlists:
-            continue
-        playlist_url = playlist["href"]
-        playlist_response = json.loads(requests.request("GET", playlist_url, headers=headers).content)
-        if exclude_other_users and (playlist_response["owner"]["uri"] != me_uri):
-            continue
-        
-        for song in playlist_response["items"]["items"]:
-            try:
-                song_id = song["item"]["id"]
-                album_id = song["item"]["album"]["id"]
-            except TypeError:
-                error_song_count += 1
-                continue
+if __name__ == "__main__":
+    EVERYTHING_playlist_id = create_playlist("EVERYTHING")
 
-            if song_id not in seen_songs:
-                seen_songs.add(song_id)
-                song_uris.append(f"spotify:track:{song_id}")
-        playlists_counter += 1
-        print(f"\rPlaylists Checked: {playlists_counter}/{total_songs}, Error with {error_song_count} songs                     ", end="")
+    current_playlists_url = "https://api.spotify.com/v1/me/playlists/"
 
-    if playlists["next"]:
-        current_playlists_url = playlists["next"]
-    else: break
-
-while song_uris:
-    url = f"https://api.spotify.com/v1/playlists/{EVERYTHING_playlist_id}/items"
-
-    payload = {"uris": song_uris[:100]}
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Python",
+        "User-Agent": "python",
         "Authorization": f"Bearer {token}"
     }
+    song_ids = set()
+    large_album_images = set()
+    medium_album_images = set()
+    small_album_images = set()
 
-    response = requests.request("POST", url, json=payload, headers=headers)
+    while True:
+        response = requests.request("GET", current_playlists_url, headers=headers)
+        playlists = json.loads(response.text)
+        total_playlists = playlists["total"]
 
-    if response.status_code == 429:
-        sleep(1)
-        continue
+        for playlist in playlists["items"]:
+            playlists_counter += 1
+            print(f"\rPlaylists Checked: {playlists_counter}/{total_playlists}, Error with {error_song_count} songs                     ", end="")
+            if (playlist["id"] in exclude_playlists or playlist["name"] in exclude_playlists) ^ whitelist:
+                continue
+            if exclude_other_users and (playlist["owner"]["uri"] != me_uri):
+                continue
 
-    song_uris = song_uris[100:]
+            playlist_song_ids, playlist_large_album_images, playlist_medium_album_images, playlist_small_album_images = get_song_ids_and_album_urls_from_playlist(playlist["id"])
+            
+            song_ids.update(playlist_song_ids)
+            large_album_images.update(playlist_large_album_images)
+            medium_album_images.update(playlist_medium_album_images)
+            small_album_images.update(playlist_small_album_images)
+            
+
+        if playlists["next"]:
+            current_playlists_url = playlists["next"]
+        else: break
+    
+    print(song_ids)
+
+    song_uris = [f"spotify:track:{id}" for id in song_ids]
+
+    url = f"https://api.spotify.com/v1/playlists/{EVERYTHING_playlist_id}/items"
+    while song_uris:
+
+        payload = {"uris": song_uris[:100]}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "Python",
+            "Authorization": f"Bearer {token}"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=headers)
+
+        if response.status_code == 429:
+            sleep(1)
+            continue
+
+        song_uris = song_uris[100:]
