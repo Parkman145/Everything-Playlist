@@ -24,6 +24,7 @@ def get_token():
         token = token_response["access_token"]
         expire_time = time.time() + token_response["expires_in"]
 
+        # Maybe not the best idea to store tokens in plaintext, but it doesn't have that many scopes, and it expires in an hour so I don't care 
         data = {"token":token, "expire_time":expire_time}
         with open("token.json", "w") as f:
             json.dump(data, f)
