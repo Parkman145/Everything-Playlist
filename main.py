@@ -30,33 +30,42 @@ def create_playlist(name: str) -> str:
 # Holy name
 def get_song_ids_and_album_urls_from_playlist(playlist_id):
     global error_song_count
+    song_ids = set()
+    large_album_images = set()
+    medium_album_images = set()
+    small_album_images = set()
 
-    playlist_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/items"
+    current_playlist_items_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/items"
     headers = {
     "Content-Type": "application/json",
     "User-Agent": "python",
     "Authorization": f"Bearer {token}"
     }
     
-    playlist_response = json.loads(requests.request("GET", playlist_url, headers=headers).content)
-    
-    song_ids = set()
-    large_album_images = set()
-    medium_album_images = set()
-    small_album_images = set()
-    
-    for song in playlist_response["items"]:
-        song_id = song.get("item").get("id")
-        if (not song_id):
-            error_song_count += 1
-            continue
+    while True:
+        print(f"current playlist url {current_playlist_items_url}")
+        items_response = json.loads(requests.request("GET", current_playlist_items_url, headers=headers).content)
+        
+        
 
-        large_album_image, medium_album_image, small_album_image = song.get("item").get("album").get("images")
+        for song in items_response["items"]:
+            song_id = song.get("item").get("id")
+            if (not song_id):
+                error_song_count += 1
+                continue
 
-        song_ids.add(song_id)
-        large_album_images.add(large_album_image.get("url"))
-        medium_album_images.add(medium_album_image.get("url"))
-        small_album_images.add(small_album_image.get("url"))
+            large_album_image, medium_album_image, small_album_image = song.get("item").get("album").get("images")
+
+            song_ids.add(song_id)
+            large_album_images.add(large_album_image.get("url"))
+            medium_album_images.add(medium_album_image.get("url"))
+            small_album_images.add(small_album_image.get("url"))
+    
+        if items_response["next"]:
+            current_playlist_items_url = items_response["next"]
+        else: break
+
+    
     return (song_ids, large_album_images, medium_album_images, small_album_images)
 
 
