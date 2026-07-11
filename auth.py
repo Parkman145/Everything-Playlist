@@ -6,7 +6,30 @@ import requests
 import hashlib
 import secrets
 import base64
+import time
 
+def get_token():
+    min_remaining_time = 60*5 # 5 Min
+
+    try:
+        with open("token.json") as f:
+            token_json = json.load(f)
+        time_remaining =  token_json["expire_time"] - time.time()
+    except FileNotFoundError:
+        time_remaining = 0 
+
+
+    if (time_remaining < min_remaining_time):
+        token_response = request_token()
+        token = token_response["access_token"]
+        expire_time = time.time() + token_response["expires_in"]
+
+        data = {"token":token, "expire_time":expire_time}
+        with open("token.json", "w") as f:
+            json.dump(data, f)
+    else: token = token_json["token"]
+
+    return token
 
 def generate_code():
     code = secrets.token_urlsafe(64)
@@ -81,4 +104,4 @@ def request_token():
     return json.loads(response.text)
 
 if __name__ == "__main__":
-    print(request_token())
+    print(get_token())

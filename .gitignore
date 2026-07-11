@@ -217,6 +217,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-tokens.json
+token.json
 images
 demo_cache.sqlite
