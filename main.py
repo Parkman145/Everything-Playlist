@@ -5,7 +5,7 @@ import auth
 import requests_cache
 import math
 
-token = auth.request_token()
+token = auth.request_token()["access_token"]
 
 
 requests_cache.install_cache('demo_cache', expire_after=3600, ignored_parameters=[])

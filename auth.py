@@ -76,9 +76,9 @@ def request_token():
     response = requests.request(
         "POST", spotify_token_url, data=payload, headers=headers)
 
-    token = json.loads(response.text)["access_token"]
 
-    return token
+
+    return json.loads(response.text)
 
 if __name__ == "__main__":
     print(request_token())
