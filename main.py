@@ -81,21 +81,8 @@ headers = {
 
 me_uri = json.loads(requests.request("GET", "https://api.spotify.com/v1/me", headers=headers).text)["uri"]
 
-print(me_uri)
 
 
-# Creating Playlist
-
-headers = {
-    "Content-Type": "application/json",
-    "User-Agent": "python",
-    "Authorization": f"Bearer {token}"
-}
-
-
-EVERYTHING_playlist_id = create_playlist("EVERYTHING")
-
-print(EVERYTHING_playlist_id)
 
 seen_albums = set()
 seen_songs = set()
