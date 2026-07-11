@@ -9,6 +9,7 @@
         ],
         "songs":[
 
-        ]
+        ],
+        "whitelist":false
     }
 }
