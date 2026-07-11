@@ -19,7 +19,7 @@ def generate_code():
     return (code, code_challenge)
 
 
-def get_token():
+def request_token():
     with open("config.json") as f:
         config = json.load(f)
 
@@ -81,4 +81,4 @@ def get_token():
     return token
 
 if __name__ == "__main__":
-    print(get_token())
+    print(request_token())
