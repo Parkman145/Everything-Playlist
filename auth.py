@@ -8,29 +8,31 @@ import secrets
 import base64
 import time
 
+
 def get_token():
-    min_remaining_time = 60*5 # 5 Min
+    min_remaining_time = 60*5  # 5 Min
 
     try:
         with open("token.json") as f:
             token_json = json.load(f)
-        time_remaining =  token_json["expire_time"] - time.time()
+        time_remaining = token_json["expire_time"] - time.time()
     except FileNotFoundError:
-        time_remaining = 0 
-
+        time_remaining = 0
 
     if (time_remaining < min_remaining_time):
         token_response = request_token()
         token = token_response["access_token"]
         expire_time = time.time() + token_response["expires_in"]
 
-        # Maybe not the best idea to store tokens in plaintext, but it doesn't have that many scopes, and it expires in an hour so I don't care 
-        data = {"token":token, "expire_time":expire_time}
+        # Maybe not the best idea to store tokens in plaintext, but it doesn't have that many scopes, and it expires in an hour so I don't care
+        data = {"token": token, "expire_time": expire_time}
         with open("token.json", "w") as f:
             json.dump(data, f)
-    else: token = token_json["token"]
+    else:
+        token = token_json["token"]
 
     return token
+
 
 def generate_code():
     code = secrets.token_urlsafe(64)
@@ -102,9 +104,8 @@ def request_token():
     response = requests.request(
         "POST", spotify_token_url, data=payload, headers=headers)
 
-
-
     return json.loads(response.text)
+
 
 if __name__ == "__main__":
     print(get_token())
