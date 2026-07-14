@@ -72,6 +72,26 @@ def get_song_ids_and_album_urls_from_playlist(playlist_id):
 token = auth.get_token()
 
 
+class SongRegistry:
+    songs = {}
+
+    @classmethod
+    def register_song(cls, song_id, sort_attribute):
+        if song_id not in cls.songs.keys():
+            cls.songs[song_id] = sort_attribute
+        else:
+            cls.songs[song_id] = min(cls.songs[song_id], sort_attribute)
+
+    @classmethod
+    def get_songs_sorted(cls):
+        elems = sorted(zip(cls.songs.values(), cls.songs.keys()))
+        songs = [elem[1] for elem in elems]
+
+        return songs
+    
+    
+
+
 requests_cache.install_cache('demo_cache', expire_after=3600, ignored_parameters=[])
 
 
