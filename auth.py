@@ -78,6 +78,8 @@ def request_token():
     )
     conn.sendall(response.encode("utf-8"))
 
+    conn.close()
+
     path = message.decode().split("\r\n")[0].split(" ")[1]
 
     query = urllib.parse.urlsplit(path).query
