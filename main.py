@@ -91,15 +91,6 @@ headers = {
 
 me_uri = json.loads(requests.request("GET", "https://api.spotify.com/v1/me", headers=headers).text)["uri"]
 
-
-
-
-seen_albums = set()
-seen_songs = set()
-song_uris = []
-
-
-playlists_counter = 0
 error_song_count = 0
 
 
@@ -117,6 +108,8 @@ if __name__ == "__main__":
     large_album_images = set()
     medium_album_images = set()
     small_album_images = set()
+
+    playlists_counter = 0
 
     while True:
         response = requests.request("GET", current_playlists_url, headers=headers)
